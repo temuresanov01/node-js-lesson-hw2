@@ -1,22 +1,39 @@
 const express = require('express')
 const app = express()
 const PORT = process.env.PORT || 3000
+const fs = require('fs/promises')
 
 app.use(express.json())
 
 app.use((req, res, next)=>{
-    // const starti = performance.now()
+    const start = performance.now()
     // console.log(req.body)
-     console.log('Our middleware')
+    //  console.log('Our middleware')
+    // if (req.body.name === 'Alex') {
+    //  return res.json({message: 'Hello Alex'})
+    // }
     next()
-    // console.log(`${req.method} ${req.url}: - ${starti -performance.now()}`)
+    console.log(`${req.method} ${req.originalUrl} : ${performance.now() - start}`)
 })
 
 
 // app.use(express.urlencoded({extended: true})) // forma
 
 app.use('/', require('./routes/main'))
-app.use('/users', require('./routes/users'))
+// app.use('/users', require('./routes/users'))
+app.use('/weather', require('./routes/weather'))
+
+
+app.use((req, res) => {
+  res.status(404).json(({message: 'Not Found'}))
+})
+
+app.use(async(err, req, res, next) => {
+  await fs.appendFile('error.log',
+   `${req.method} ${req.originalUrl} : ${err.message}`,
+   )
+  res.status(500).json({message: err.message})
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on PORT ${PORT}`)
